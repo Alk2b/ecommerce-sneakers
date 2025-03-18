@@ -83,8 +83,15 @@
         // Récupération et affichage des informations utilisateur
         async function fetchUserInfo() {
             try {
-                const response = await fetch(`http://localhost/ecommerce-sneakers/backend/get_user.php?client_id=${user.id}`);
-                const userData = await response.json();
+                const response = await fetch(`http://localhost/ecommerce-sneakers/backend/api.php?action=user&client_id=${user.id}`);
+                const text = await response.text(); // Récupérer d'abord le texte brut
+                console.log('Réponse brute user:', text);
+
+                if (!text) {
+                    throw new Error('Réponse vide');
+                }
+
+                const userData = JSON.parse(text);
 
                 const userInfo = document.getElementById('userInfo');
                 userInfo.innerHTML = `
@@ -107,9 +114,9 @@
                     </button>
                 `;
             } catch (error) {
-                console.error('Erreur:', error);
+                console.error('Erreur détaillée:', error);
                 userInfo.innerHTML = `
-                    <div class="text-red-500">Erreur lors du chargement des informations utilisateur</div>
+                    <div class="text-red-500">Erreur lors du chargement des informations: ${error.message}</div>
                 `;
             }
         }
@@ -119,8 +126,15 @@
         // Récupération et affichage des commandes
         async function fetchOrders() {
             try {
-                const response = await fetch(`http://localhost/ecommerce-sneakers/backend/get_orders.php?client_id=${user.id}`);
-                const orders = await response.json();
+                const response = await fetch(`http://localhost/ecommerce-sneakers/backend/api.php?action=orders&client_id=${user.id}`);
+                const text = await response.text(); // Récupérer d'abord le texte brut
+                console.log('Réponse brute orders:', text);
+
+                if (!text) {
+                    throw new Error('Réponse vide');
+                }
+
+                const orders = JSON.parse(text);
 
                 const orderHistory = document.getElementById('orderHistory');
 
@@ -175,9 +189,9 @@
                     </div>
                 `).join('');
             } catch (error) {
-                console.error('Erreur:', error);
+                console.error('Erreur détaillée:', error);
                 document.getElementById('orderHistory').innerHTML = `
-                    <div class="text-red-500">Erreur lors du chargement des commandes</div>
+                    <div class="text-red-500">Erreur lors du chargement des commandes: ${error.message}</div>
                 `;
             }
         }

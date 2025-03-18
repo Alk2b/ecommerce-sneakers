@@ -2,14 +2,20 @@
 document.addEventListener("DOMContentLoaded", () => {
   fetch("http://localhost/ecommerce-sneakers/backend/index.php")
     .then((response) => {
-      console.log("Réponse API:", response); // Debug
+      console.log("Réponse brute:", response);
       if (!response.ok) {
         throw new Error("Erreur réseau");
       }
-      return response.json();
+      return response.text().then((text) => {
+        console.log("Texte reçu:", text);
+        if (!text) {
+          return [];
+        }
+        return JSON.parse(text);
+      });
     })
     .then((data) => {
-      console.log("Données reçues:", data); // Debug
+      console.log("Données parsées:", data);
       // Vérifie si on a une erreur de la BDD
       if (data.error) {
         throw new Error(data.error);
@@ -54,12 +60,10 @@ document.addEventListener("DOMContentLoaded", () => {
         .join("");
     })
     .catch((error) => {
-      console.error("Erreur:", error); // Debug
-      const produitsContainer = document.getElementById("products");
-      produitsContainer.innerHTML = `
+      console.error("Erreur détaillée:", error);
+      document.getElementById("products").innerHTML = `
         <div class="text-center text-red-600 p-4">
-          Erreur lors du chargement des produits:<br>
-          ${error.message}
+          Erreur lors du chargement des produits: ${error.message}
         </div>
       `;
     });

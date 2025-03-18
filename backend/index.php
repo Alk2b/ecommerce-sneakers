@@ -8,22 +8,23 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
 try {
-
-    $stmt = $pdo->query('SELECT * FROM `produits`');
+    $stmt = $pdo->query('SELECT * FROM produits');
     $produits = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    if (!$produits) {
-        throw new Exception('Aucun produit trouvé');
+    if (empty($produits)) {
+        echo json_encode([]);
+        exit;
     }
     
     echo json_encode($produits);
-} catch(Exception $e) {
+} catch(PDOException $e) {
     http_response_code(500);
-    echo json_encode([
-        'error' => $e->getMessage()
-    ]);
+    echo json_encode(['error' => $e->getMessage()]);
 }
 exit;
+
+// Simple redirection vers api.php avec le bon paramètre
+header('Location: api.php?action=products');
 
 // Endpoint pour passer une commande
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['REQUEST_URI'] === '/api/commandes') {
