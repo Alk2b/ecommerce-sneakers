@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Compte - SneakersShop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/checkAuth.js" defer></script>
+</head>
+
+<body class="bg-gray-100 min-h-full flex flex-col">
+    <!-- Navigation -->
+    <nav class="bg-black text-white p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold">SneakersShop</a>
+            <div class="flex items-center gap-6">
+                <button onclick="logout()" class="hover:text-gray-300">Déconnexion</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto py-16 px-4 flex-grow">
+        <div class="max-w-4xl mx-auto space-y-8">
+            <!-- Informations utilisateur -->
+            <div class="bg-white p-8 rounded-xl shadow-md">
+                <h1 class="text-3xl font-bold mb-8">Mon Compte</h1>
+                <div id="userInfo" class="space-y-4">
+
+                </div>
+            </div>
+
+            <!-- Historique des commandes -->
+            <div class="bg-white p-8 rounded-xl shadow-md">
+                <h2 class="text-2xl font-bold mb-6">Mes Commandes</h2>
+                <div id="orderHistory" class="space-y-4">
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-12 mt-auto">
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <h3 class="text-xl font-bold mb-4">À propos</h3>
+                <p class="text-gray-400">SneakersShop, votre destination pour les meilleures sneakers.</p>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-4">Service Client</h3>
+                <ul class="space-y-2 text-gray-400">
+                    <li><a href="#" class="hover:text-white">Contact</a></li>
+                    <li><a href="#" class="hover:text-white">Livraison</a></li>
+                    <li><a href="#" class="hover:text-white">Retours</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-4">Informations</h3>
+                <ul class="space-y-2 text-gray-400">
+                    <li><a href="#" class="hover:text-white">CGV</a></li>
+                    <li><a href="#" class="hover:text-white">Confidentialité</a></li>
+                    <li><a href="#" class="hover:text-white">Mentions légales</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-4">Newsletter</h3>
+                <form class="flex gap-2">
+                    <input type="email" placeholder="Votre email" class="bg-gray-800 px-4 py-2 rounded flex-1">
+                    <button class="bg-white text-black px-4 py-2 rounded hover:bg-gray-200">OK</button>
+                </form>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Vérification si l'utilisateur est connecté
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'login.html';
+        }
+
+        // Récupération et affichage des informations utilisateur
+        async function fetchUserInfo() {
+            try {
+                const response = await fetch(`http://localhost/ecommerce-sneakers/backend/get_user.php?client_id=${user.id}`);
+                const userData = await response.json();
+
+                const userInfo = document.getElementById('userInfo');
+                userInfo.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Informations personnelles</h3>
+                            <p class="text-gray-600 mb-2"><span class="font-semibold">Nom :</span> ${userData.nom}</p>
+                            <p class="text-gray-600 mb-2"><span class="font-semibold">Email :</span> ${userData.email}</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Adresse de livraison</h3>
+                            <p class="text-gray-600 mb-2"><span class="font-semibold">Adresse :</span> ${userData.adresse || 'Non renseignée'}</p>
+                            <p class="text-gray-600 mb-2"><span class="font-semibold">Ville :</span> ${userData.ville || 'Non renseignée'}</p>
+                            <p class="text-gray-600 mb-2"><span class="font-semibold">Code postal :</span> ${userData.code_postal || 'Non renseigné'}</p>
+                            <p class="text-gray-600 mb-2"><span class="font-semibold">Pays :</span> ${userData.pays || 'Non renseigné'}</p>
+                        </div>
+                    </div>
+                    <button onclick="editProfile()" class="mt-6 bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800 transition">
+                        Modifier mes informations
+                    </button>
+                `;
+            } catch (error) {
+                console.error('Erreur:', error);
+                userInfo.innerHTML = `
+                    <div class="text-red-500">Erreur lors du chargement des informations utilisateur</div>
+                `;
+            }
+        }
+
+        fetchUserInfo();
+
+        // Récupération et affichage des commandes
+        async function fetchOrders() {
+            try {
+                const response = await fetch(`http://localhost/ecommerce-sneakers/backend/get_orders.php?client_id=${user.id}`);
+                const orders = await response.json();
+
+                const orderHistory = document.getElementById('orderHistory');
+
+                if (orders.length === 0) {
+                    orderHistory.innerHTML = '<p class="text-gray-500">Aucune commande pour le moment</p>';
+                    return;
+                }
+
+                // Grouper les commandes par commande_id
+                const groupedOrders = orders.reduce((acc, order) => {
+                    if (!acc[order.commande_id]) {
+                        acc[order.commande_id] = {
+                            id: order.commande_id,
+                            date: new Date(order.date_commande).toLocaleDateString('fr-FR'),
+                            statut: order.statut,
+                            produits: []
+                        };
+                    }
+                    acc[order.commande_id].produits.push({
+                        nom: order.produit_nom,
+                        quantite: order.quantite,
+                        prix: order.prix_unitaire,
+                        image: order.image_url
+                    });
+                    return acc;
+                }, {});
+
+                orderHistory.innerHTML = Object.values(groupedOrders).map(order => `
+                    <div class="border rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <p class="font-bold">Commande #${order.id}</p>
+                                <p class="text-sm text-gray-500">Date : ${order.date}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-sm ${order.statut === 'En attente' ? 'bg-yellow-100 text-yellow-800' :
+                        order.statut === 'Expédiée' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                    }">${order.statut}</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${order.produits.map(produit => `
+                                <div class="flex items-center gap-4">
+                                    <img src="${produit.image}" alt="${produit.nom}" class="w-16 h-16 object-cover rounded">
+                                    <div class="flex-grow">
+                                        <p class="font-medium">${produit.nom}</p>
+                                        <p class="text-sm text-gray-500">Quantité : ${produit.quantite}</p>
+                                    </div>
+                                    <p class="font-bold">${produit.prix} €</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erreur:', error);
+                document.getElementById('orderHistory').innerHTML = `
+                    <div class="text-red-500">Erreur lors du chargement des commandes</div>
+                `;
+            }
+        }
+
+        fetchOrders();
+
+        // Fonction de déconnexion
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

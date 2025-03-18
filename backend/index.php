@@ -1,14 +1,29 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require 'includes/db.php';
 
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
 
-// Endpoint pour récupérer les produits
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && $_SERVER['REQUEST_URI'] === '/api/produits') {
-    $stmt = $pdo->query('SELECT * FROM Produits');
+try {
+
+    $stmt = $pdo->query('SELECT * FROM `produits`');
     $produits = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    if (!$produits) {
+        throw new Exception('Aucun produit trouvé');
+    }
+    
     echo json_encode($produits);
+} catch(Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'error' => $e->getMessage()
+    ]);
 }
+exit;
 
 // Endpoint pour passer une commande
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['REQUEST_URI'] === '/api/commandes') {
