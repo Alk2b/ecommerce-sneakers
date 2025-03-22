@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS sneakershop;
-USE sneakershop;
+CREATE DATABASE IF NOT EXISTS ecommerce_sneakers;
+USE ecommerce_sneakers;
 
 -- Table des clients
 CREATE TABLE IF NOT EXISTS Clients (
