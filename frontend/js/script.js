@@ -2,12 +2,10 @@
 document.addEventListener("DOMContentLoaded", () => {
   fetch("http://localhost/ecommerce-sneakers/backend/index.php")
     .then((response) => {
-      console.log("Réponse brute:", response);
       if (!response.ok) {
         throw new Error("Erreur réseau");
       }
       return response.text().then((text) => {
-        console.log("Texte reçu:", text);
         if (!text) {
           return [];
         }
@@ -15,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     })
     .then((data) => {
-      console.log("Données parsées:", data);
       // Vérifie si on a une erreur de la BDD
       if (data.error) {
         throw new Error(data.error);

@@ -107,27 +107,54 @@ function removeFromCart(productId) {
 
 // Passer la commande
 function checkout() {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
   if (!cart.length) {
     alert("Votre panier est vide");
     return;
   }
 
-  fetch("http://localhost/ecommerce-sneakers/backend/api/commandes", {
+  // URL modifiée pour pointer vers index.php au lieu de api.php
+  fetch("http://localhost/ecommerce-sneakers/backend/index.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ items: cart }),
+    body: JSON.stringify({
+      client_id: user.id,
+      produits: cart.map((item) => ({
+        produit_id: item.id,
+        quantite: item.quantity,
+        prix: item.prix,
+      })),
+    }),
   })
-    .then((response) => response.json())
-    .then((data) => {
-      cart = [];
-      localStorage.removeItem("cart");
-      updateCartDisplay();
-      alert("Commande validée avec succès !");
+    .then(async (response) => {
+      const text = await response.text();
+
+      try {
+        const data = JSON.parse(text);
+        if (data.success) {
+          localStorage.removeItem("cart");
+          cart = [];
+          updateCartDisplay();
+          alert("Commande validée avec succès !");
+          window.location.href = "profile.html";
+        } else {
+          throw new Error(data.error || "Erreur lors de la commande");
+        }
+      } catch (e) {
+        console.error("Erreur parsing JSON:", e);
+        throw new Error("Réponse serveur invalide");
+      }
     })
     .catch((error) => {
-      console.error("Erreur:", error);
+      console.error("Erreur détaillée:", error);
       alert("Une erreur est survenue lors de la validation de la commande");
     });
 }
