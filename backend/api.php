@@ -91,6 +91,40 @@ try {
             }
             break;
 
+        case 'update_user':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new Exception('Méthode non autorisée');
+            }
+
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (!$data || !isset($data['client_id'])) {
+                throw new Exception('Données invalides');
+            }
+
+            $stmt = $pdo->prepare('
+                UPDATE Clients 
+                SET nom = :nom,
+                    email = :email,
+                    adresse = :adresse,
+                    ville = :ville,
+                    code_postal = :code_postal,
+                    pays = :pays
+                WHERE client_id = :client_id
+            ');
+
+            $stmt->execute([
+                'nom' => $data['nom'],
+                'email' => $data['email'],
+                'adresse' => $data['adresse'],
+                'ville' => $data['ville'],
+                'code_postal' => $data['code_postal'],
+                'pays' => $data['pays'],
+                'client_id' => $data['client_id']
+            ]);
+
+            echo json_encode(['success' => true, 'message' => 'Informations mises à jour avec succès']);
+            break;
+
         default:
             throw new Exception('Action non reconnue');
     }

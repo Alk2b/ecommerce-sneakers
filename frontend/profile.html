@@ -30,6 +30,55 @@
                 </div>
             </div>
 
+            <!-- Formulaire de modification (caché par défaut) -->
+            <div id="editProfileForm" class="hidden mt-8 bg-white p-8 rounded-xl shadow-md">
+                <h2 class="text-2xl font-bold mb-6">Modifier mes informations</h2>
+                <form id="updateProfileForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Nom</label>
+                            <input type="text" id="editNom" name="nom"
+                                class="w-full px-4 py-2 rounded border focus:border-black focus:outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Email</label>
+                            <input type="email" id="editEmail" name="email"
+                                class="w-full px-4 py-2 rounded border focus:border-black focus:outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Adresse</label>
+                            <input type="text" id="editAdresse" name="adresse"
+                                class="w-full px-4 py-2 rounded border focus:border-black focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Ville</label>
+                            <input type="text" id="editVille" name="ville"
+                                class="w-full px-4 py-2 rounded border focus:border-black focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Code postal</label>
+                            <input type="text" id="editCodePostal" name="code_postal"
+                                class="w-full px-4 py-2 rounded border focus:border-black focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Pays</label>
+                            <input type="text" id="editPays" name="pays"
+                                class="w-full px-4 py-2 rounded border focus:border-black focus:outline-none">
+                        </div>
+                    </div>
+                    <div class="flex gap-4 mt-6">
+                        <button type="submit"
+                            class="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800 transition">
+                            Enregistrer
+                        </button>
+                        <button type="button" onclick="cancelEdit()"
+                            class="bg-gray-200 text-gray-800 px-6 py-2 rounded-full hover:bg-gray-300 transition">
+                            Annuler
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- Historique des commandes -->
             <div class="bg-white p-8 rounded-xl shadow-md">
                 <h2 class="text-2xl font-bold mb-6">Mes Commandes</h2>
@@ -80,11 +129,14 @@
             window.location.href = 'login.html';
         }
 
+        // Déclaration d'une variable globale pour stocker les données utilisateur
+        let userData;
+
         // Récupération et affichage des informations utilisateur
         async function fetchUserInfo() {
             try {
                 const response = await fetch(`http://localhost/ecommerce-sneakers/backend/api.php?action=user&client_id=${user.id}`);
-                const userData = await response.json();
+                userData = await response.json();  // Stockage dans la variable globale
 
                 if (!userData) {
                     throw new Error('Réponse vide');
@@ -197,6 +249,73 @@
             localStorage.removeItem('user');
             window.location.href = 'index.html';
         }
+
+        // Modification de la fonction editProfile
+        function editProfile() {
+            if (!userData) {
+                alert('Impossible de charger les données utilisateur');
+                return;
+            }
+
+            const userInfo = document.querySelector('#userInfo');
+            const editForm = document.querySelector('#editProfileForm');
+
+            // Remplissage du formulaire avec les données actuelles
+            document.getElementById('editNom').value = userData.nom;
+            document.getElementById('editEmail').value = userData.email;
+            document.getElementById('editAdresse').value = userData.adresse || '';
+            document.getElementById('editVille').value = userData.ville || '';
+            document.getElementById('editCodePostal').value = userData.code_postal || '';
+            document.getElementById('editPays').value = userData.pays || '';
+
+            userInfo.classList.add('hidden');
+            editForm.classList.remove('hidden');
+        }
+
+        function cancelEdit() {
+            document.querySelector('#userInfo').classList.remove('hidden');
+            document.querySelector('#editProfileForm').classList.add('hidden');
+        }
+
+        document.getElementById('updateProfileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                client_id: user.id,
+                nom: document.getElementById('editNom').value,
+                email: document.getElementById('editEmail').value,
+                adresse: document.getElementById('editAdresse').value,
+                ville: document.getElementById('editVille').value,
+                code_postal: document.getElementById('editCodePostal').value,
+                pays: document.getElementById('editPays').value
+            };
+
+            try {
+                const response = await fetch('http://localhost/ecommerce-sneakers/backend/api.php?action=update_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Mettre à jour les données utilisateur dans le localStorage
+                    const updatedUser = { ...user, ...formData };
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+
+                    alert('Informations mises à jour avec succès !');
+                    window.location.reload(); // Recharger la page pour afficher les nouvelles informations
+                } else {
+                    throw new Error(data.error || 'Erreur lors de la mise à jour');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue lors de la mise à jour');
+            }
+        });
     </script>
 </body>
 
