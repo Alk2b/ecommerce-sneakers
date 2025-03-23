@@ -43,7 +43,6 @@ CREATE TABLE IF NOT EXISTS DetailsCommandes (
     FOREIGN KEY (produit_id) REFERENCES Produits(produit_id)
 );
 
-------- Exemple de données pour la base de données sneakershop ------- 
 
 -- Insertion de clients
 INSERT INTO Clients (nom, email, mot_de_passe, adresse, ville, code_postal, pays)
