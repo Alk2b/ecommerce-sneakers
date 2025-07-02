@@ -1,0 +1,17 @@
+# Variables d'environnement sensibles
+.env.production
+.env.local
+
+# Données Docker
+mysql_data/
+
+# Logs
+*.log
+
+# Cache
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
